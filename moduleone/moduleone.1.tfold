@@ -1,0 +1,34 @@
+variable "aws_access_key" {}
+variable "aws_secret_key" {}
+variable "private_key_path" {}
+variable "key_name" {
+    default = "PluralsightKeys"
+}
+
+provider "aws" {
+    access_key = "${var.aws_access_key}"
+    secret_key = "${var.aws_secret_key}"
+    region = "us-east-1"
+}
+
+resource "aws_instance" "nginx" {
+    ami = "ami-408c7f28"
+    instance_type = "m3.medium"
+    vpc_security_group_ids = ["${aws_security_group.instance.id}"]
+ 
+    key_name = "${var.key_name}"
+
+    connection {
+        user ="ec2_user"
+        private_key = "${file(var.private_key_path)}"
+
+    }
+
+provisioner "remote-exec" {
+    inline = [
+        "sudo yum install nginx -y",
+        "sudo service nginx start"
+
+    ]
+}
+}
